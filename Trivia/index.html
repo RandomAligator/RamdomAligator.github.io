@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lotus Trivia Garden</title>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      :root {
+        --lotus-pink: #f8b6c8;
+        --lotus-dark-pink: #d97b9b;
+        --lotus-white: #fffafc;
+        --zen-green: #a8c3a0;
+        --royal-gold: #c9a227;
+        --text-dark: #4b3040;
+        --wrong-red: #c0546f;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        font-family: "Cormorant Garamond", Georgia, serif;
+        background:
+          linear-gradient(rgba(255, 250, 252, 0.85), rgba(248, 182, 200, 0.35)),
+          url("lotus-pond.jpg");
+        background-size: cover;
+        background-position: center;
+        color: var(--text-dark);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 16px;
+      }
+
+      .trivia-box {
+        width: 100%;
+        max-width: 700px;
+        background: rgba(255, 250, 252, 0.92);
+        padding: clamp(20px, 5vw, 35px);
+        border-radius: 25px;
+        border: 3px solid var(--royal-gold);
+        box-shadow:
+          0 10px 35px rgba(120, 60, 80, 0.25),
+          inset 0 0 20px rgba(201, 162, 39, 0.15);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .trivia-box::before,
+      .trivia-box::after {
+        content: "❀";
+        position: absolute;
+        color: var(--lotus-dark-pink);
+        font-size: 32px;
+        pointer-events: none;
+      }
+
+      .trivia-box::before {
+        top: 8px;
+        left: 12px;
+      }
+
+      .trivia-box::after {
+        bottom: 8px;
+        right: 12px;
+      }
+
+      .title {
+        text-align: center;
+        font-size: clamp(1.8rem, 6vw, 3rem);
+        color: var(--lotus-dark-pink);
+        letter-spacing: 2px;
+      }
+
+      .subtitle {
+        text-align: center;
+        margin-top: 10px;
+        font-size: clamp(1rem, 3vw, 1.2rem);
+      }
+
+      .description {
+        text-align: center;
+        margin-top: 18px;
+        font-size: clamp(1rem, 3vw, 1.1rem);
+        line-height: 1.5;
+      }
+
+      /* Progress */
+
+      .progress-wrap {
+        margin-bottom: 22px;
+      }
+
+      .progress-label {
+        text-align: center;
+        font-size: 1.05rem;
+        margin-bottom: 10px;
+        letter-spacing: 1px;
+      }
+
+      .progress-track {
+        width: 100%;
+        height: 8px;
+        border-radius: 50px;
+        background: rgba(217, 123, 155, 0.2);
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        height: 100%;
+        border-radius: 50px;
+        background: linear-gradient(
+          90deg,
+          var(--lotus-pink),
+          var(--lotus-dark-pink)
+        );
+        transition: width 0.4s ease;
+      }
+
+      .question {
+        margin: 22px 0 30px;
+        text-align: center;
+        font-size: clamp(1.2rem, 4vw, 1.7rem);
+        line-height: 1.5;
+      }
+
+      /* Options — no images, plain word cards, mobile-first grid */
+
+      .options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+
+      .option-card {
+        min-height: 64px;
+        border-radius: 16px;
+        border: 2px solid var(--lotus-pink);
+        background: var(--lotus-white);
+        color: var(--text-dark);
+        font-family: inherit;
+        font-size: clamp(1.05rem, 4vw, 1.3rem);
+        font-weight: 600;
+        cursor: pointer;
+        padding: 10px 12px;
+        transition: 0.25s ease;
+      }
+
+      .option-card:hover:not(:disabled) {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(217, 123, 155, 0.35);
+      }
+
+      .option-card:focus-visible {
+        outline: 3px solid var(--royal-gold);
+        outline-offset: 2px;
+      }
+
+      .option-card:disabled {
+        cursor: default;
+      }
+
+      .option-card.correct {
+        background: var(--zen-green);
+        border-color: var(--zen-green);
+        color: white;
+      }
+
+      .option-card.wrong {
+        background: var(--wrong-red);
+        border-color: var(--wrong-red);
+        color: white;
+        opacity: 0.85;
+      }
+
+      .lotus-button {
+        display: block;
+        margin: 30px auto 0;
+        padding: 15px 45px;
+        border: none;
+        border-radius: 50px;
+        background: linear-gradient(135deg, #f8b6c8, #d97b9b);
+        color: white;
+        font-size: 1.2rem;
+        font-family: inherit;
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(217, 123, 155, 0.4);
+        transition: 0.3s;
+      }
+
+      .lotus-button:hover {
+        transform: scale(1.05);
+      }
+
+      .lotus-button:focus-visible {
+        outline: 3px solid var(--royal-gold);
+        outline-offset: 3px;
+      }
+
+      .lotus-button.secondary {
+        background: linear-gradient(135deg, var(--zen-green), #8aab80);
+      }
+
+      .result-message {
+        text-align: center;
+        font-size: clamp(1.1rem, 4vw, 1.3rem);
+        margin-top: 10px;
+      }
+
+      @media (max-width: 480px) {
+        .options {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .option-card,
+        .lotus-button,
+        .progress-fill {
+          transition: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="trivia-box">
+      <section id="welcome-page">
+        <h1 class="title">🌸 Music Trivia 🌸</h1>
+        <h2 class="subtitle">A beautiful journey with a beautiful name</h2>
+        <p class="description">
+          Fill in the blank - predict the song from its english translated
+          lyrics
+        </p>
+        <button class="lotus-button" id="start-button" type="button">
+          Start Quiz 🌸
+        </button>
+      </section>
+
+      <section id="quiz-page" hidden>
+        <div class="progress-wrap">
+          <div class="progress-label">
+            Question <span id="number">1</span> / <span id="total">10</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+        </div>
+
+        <h2 class="question" id="question">Question</h2>
+
+        <div class="options" id="options">
+          <button class="option-card" type="button" data-index="0"></button>
+          <button class="option-card" type="button" data-index="1"></button>
+          <button class="option-card" type="button" data-index="2"></button>
+          <button class="option-card" type="button" data-index="3"></button>
+        </div>
+      </section>
+
+      <section id="result-page" hidden>
+        <h2 class="title" style="font-size: clamp(1.5rem, 5vw, 2.2rem)">
+          🌸 Trivia Complete 🌸
+        </h2>
+        <p class="result-message">Hope you enjoyed it.</p>
+        <button
+          class="lotus-button secondary"
+          id="restart-button"
+          type="button"
+        >
+          Play Again
+        </button>
+      </section>
+    </div>
+
+    <audio id="clipAudio" preload="none"></audio>
+
+    <script>
+      const questions = [
+        {
+          question: [
+            "＿＿＿＿＿ keep saying : ",
+            "I could keep looking at your face forever.",
+            "You're mine, aren't you?",
+            "The fragrance of our love has seeped into my soul.",
+          ],
+          options: ["eyes", "heart", "hands", "voice"],
+          correct: 0,
+          audio: "audio/audio1.mp3",
+        },
+        {
+          question: [
+            "Ever since your ＿＿＿＿＿ met mine,",
+            "I have become a lover lost in love.",
+            "I have become a stranger to the whole world,",
+            "Even God seems to be enchanted.",
+          ],
+          options: ["smile", "eyes", "soul", "dreams"],
+          correct: 1,
+          audio: "audio/audio2.mp3",
+        },
+        {
+          question: [
+            "These ＿＿＿＿＿ cannot be held back,",
+            "They are stay in your direction.",
+          ],
+          options: ["lips", "hair", "eyes", "compass"],
+          correct: 2,
+          audio: "audio/audio3.mp3",
+        },
+        {
+          question: [
+            "What fault do these ＿＿＿＿＿ have?",
+            "What fault do they have, tell me?",
+            "Oh heart, you tell me…",
+          ],
+          options: ["eyes", "voice", "hands", "smile"],
+          correct: 0,
+          audio: "audio/audio4.mp3",
+        },
+        {
+          question: [
+            "My ＿＿＿ keep flowing, my ＿＿＿ are filled with tears, my ＿＿＿ keep shedding them.",
+            "My ＿＿＿ do not listen to me,",
+            "My ＿＿＿ keep overflowing.",
+          ],
+          options: ["heart", "eyes", "dreams", "soul"],
+          correct: 1,
+          audio: "audio/audio5.mp3",
+        },
+        {
+          question: [
+            "My ＿＿＿ rain softly, drop by drop,",
+            "Beloved, they wait in hope for your arrival.",
+            "My ＿＿＿ rain softly, drop by drop...",
+          ],
+          options: ["hands", "tears", "eyes", "hair"],
+          correct: 2,
+          audio: "audio/audio6.mp3",
+        },
+        {
+          question: [
+            "Your ＿＿＿ are so killer, they will surely be the death of me.",
+            "With your killer, enchanting charms, one day",
+            "They will make this heart laugh, make it cry, and finally steal my life away.",
+          ],
+          options: ["eyes", "smile", "voice", "heart"],
+          correct: 0,
+          audio: "audio/audio7.mp3",
+        },
+        {
+          question: [
+            "Oh, you deceiver, oh, you little trickster,",
+            "Your ＿＿＿ are such clever deceivers.",
+            "We met just yesterday, yes, we met yesterday,",
+            "And today you’ve already forgotten me.",
+          ],
+          options: ["soul", "eyes", "hair", "smile"],
+          correct: 1,
+          audio: "audio/audio8.mp3",
+        },
+        {
+          question: [
+            "What kind of bond have these ＿＿＿ tied me in?",
+            "What kind of bond have these ＿＿＿ tied me in?",
+            "Oh, my very judge is also my thief,",
+            "No one has any control over my heart.",
+          ],
+          options: ["dreams", "tears", "eyes", "smile"],
+          correct: 2,
+          audio: "audio/audio9.mp3",
+        },
+        {
+          question: [
+            "＿＿＿ met with ＿＿＿",
+            "The ＿＿＿ know not what they search for",
+            "How should they explain this to you?",
+            "The ＿＿＿ know not what they search for",
+          ],
+          options: ["eyes", "heart", "voice", "soul"],
+          correct: 0,
+          audio: "audio/audio10.mp3",
+        },
+      ];
+
+      const AUDIO_FALLBACK_MS = 2000;
+
+      const welcomePage = document.getElementById("welcome-page");
+      const quizPage = document.getElementById("quiz-page");
+      const resultPage = document.getElementById("result-page");
+
+      const numberEl = document.getElementById("number");
+      const totalEl = document.getElementById("total");
+      const questionEl = document.getElementById("question");
+      const progressFillEl = document.getElementById("progress-fill");
+      const optionCards = Array.from(document.querySelectorAll(".option-card"));
+      const clipAudio = document.getElementById("clipAudio");
+
+      let current = 0;
+      let answeredCorrectly = false;
+      let fallbackTimer = null;
+
+      document
+        .getElementById("start-button")
+        .addEventListener("click", startQuiz);
+      document
+        .getElementById("restart-button")
+        .addEventListener("click", startQuiz);
+      optionCards.forEach((card) => {
+        card.addEventListener("click", () =>
+          handleAnswer(Number(card.dataset.index)),
+        );
+      });
+      clipAudio.addEventListener("ended", advance);
+
+      function startQuiz() {
+        current = 0;
+        totalEl.textContent = questions.length;
+
+        welcomePage.hidden = true;
+        resultPage.hidden = true;
+        quizPage.hidden = false;
+
+        loadQuestion();
+      }
+
+      function loadQuestion() {
+        const q = questions[current];
+
+        numberEl.textContent = current + 1;
+        progressFillEl.style.width = `${(current / questions.length) * 100}%`;
+        questionEl.innerHTML = q.question.join("<br>");
+
+        optionCards.forEach((card, index) => {
+          card.textContent = q.options[index];
+          card.disabled = false;
+          card.classList.remove("correct", "wrong");
+        });
+
+        answeredCorrectly = false;
+      }
+
+      function handleAnswer(selected) {
+        if (answeredCorrectly) return;
+
+        const q = questions[current];
+        const card = optionCards[selected];
+
+        if (selected === q.correct) {
+          answeredCorrectly = true;
+          optionCards.forEach((c) => (c.disabled = true));
+          card.classList.add("correct");
+          playClipThenAdvance(q.audio);
+        } else {
+          card.classList.add("wrong");
+          card.disabled = true;
+        }
+      }
+
+      function playClipThenAdvance(src) {
+        clearTimeout(fallbackTimer);
+
+        if (!src) {
+          fallbackTimer = setTimeout(advance, AUDIO_FALLBACK_MS);
+          return;
+        }
+
+        clipAudio.src = src;
+        clipAudio.play().catch(() => {
+          fallbackTimer = setTimeout(advance, AUDIO_FALLBACK_MS);
+        });
+      }
+
+      function advance() {
+        clearTimeout(fallbackTimer);
+        current++;
+        if (current < questions.length) {
+          loadQuestion();
+        } else {
+          progressFillEl.style.width = "100%";
+          quizPage.hidden = true;
+          resultPage.hidden = false;
+        }
+      }
+    </script>
+  </body>
+</html>
