@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no"
+    />
+    <title>A Little Memory Game</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --pink: #ff9ecb;
+        --pink-deep: #e85d9a;
+        --lilac: #c9a7eb;
+        --gold: #f6c667;
+        --text-dark: #5a3a4a;
+      }
+
+      html,
+      body {
+        height: 100%;
+      }
+
+      body {
+        font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+        background: linear-gradient(
+          135deg,
+          #ffe3ee 0%,
+          #f6d6ff 45%,
+          #e0c3fc 100%
+        );
+        color: var(--text-dark);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      /* floating petals */
+      .petals {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+      }
+      .petal {
+        position: absolute;
+        top: -10%;
+        font-size: 1.4rem;
+        opacity: 0.7;
+        animation: fall linear infinite;
+        user-select: none;
+      }
+      @keyframes fall {
+        0% {
+          transform: translateY(-10vh) rotate(0deg);
+        }
+        100% {
+          transform: translateY(110vh) rotate(360deg);
+        }
+      }
+
+      .top-bar {
+        text-align: center;
+        padding: 1.6rem 1rem 0.6rem;
+        z-index: 1;
+      }
+      .top-bar h1 {
+        font-size: 1.8rem;
+        color: var(--pink-deep);
+        text-shadow: 1px 1px 0 #fff;
+      }
+      .subtitle {
+        font-size: 0.95rem;
+        font-style: italic;
+        opacity: 0.75;
+        margin-top: 0.2rem;
+      }
+
+      .screen {
+        width: 100%;
+        max-width: 900px;
+        padding: 1rem;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      .card-panel {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(6px);
+        border-radius: 22px;
+        padding: 2rem 1.6rem;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(200, 100, 150, 0.25);
+        max-width: 480px;
+        width: 100%;
+        margin-top: 2rem;
+      }
+
+      .card-panel h2 {
+        color: var(--pink-deep);
+        margin-bottom: 1.2rem;
+        font-size: 1.3rem;
+      }
+
+      .primary-btn {
+        background: linear-gradient(135deg, var(--pink-deep), var(--lilac));
+        color: #fff;
+        border: none;
+        padding: 0.85rem 1.8rem;
+        border-radius: 16px;
+        font-size: 1.05rem;
+        cursor: pointer;
+        box-shadow: 0 6px 16px rgba(200, 90, 150, 0.4);
+        transition: transform 0.15s ease;
+      }
+      .primary-btn:hover {
+        transform: translateY(-2px) scale(1.02);
+      }
+
+      .small-btn {
+        background: #fff;
+        border: 2px solid var(--pink-deep);
+        color: var(--pink-deep);
+        padding: 0.4rem 0.9rem;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 0.85rem;
+      }
+      .small-btn:hover {
+        background: var(--pink-deep);
+        color: #fff;
+      }
+
+      .sound-toggle {
+        margin-top: 1.2rem;
+        font-size: 0.9rem;
+      }
+
+      .hud {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem 1.4rem;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.6);
+        padding: 0.7rem 1.2rem;
+        border-radius: 16px;
+        margin-bottom: 1.2rem;
+        font-size: 0.95rem;
+        width: 100%;
+        max-width: 700px;
+      }
+      .hud-item {
+        font-weight: 600;
+        color: var(--pink-deep);
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+        width: 100%;
+        max-width: 650px;
+        margin: 0 auto 2rem;
+        perspective: 1000px;
+      }
+
+      .tile {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        cursor: pointer;
+      }
+      .tile-inner {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.5s cubic-bezier(0.4, 0.2, 0.2, 1);
+      }
+      .tile.flipped .tile-inner,
+      .tile.matched .tile-inner {
+        transform: rotateY(180deg);
+      }
+
+      .tile-face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(150, 80, 120, 0.25);
+      }
+      .tile-back {
+        background: linear-gradient(135deg, var(--pink), var(--lilac));
+        font-size: 1.6rem;
+      }
+      .tile-front {
+        background: #fff;
+        transform: rotateY(180deg);
+      }
+      .tile-front img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .tile.matched .tile-face.tile-front {
+        box-shadow:
+          0 0 0 3px var(--gold),
+          0 4px 14px rgba(246, 198, 103, 0.6);
+      }
+      .tile.matched {
+        animation: pop 0.4s ease;
+      }
+      @keyframes pop {
+        0% {
+          transform: scale(1);
+        }
+        40% {
+          transform: scale(1.08);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .win-panel {
+        margin-top: 3rem;
+      }
+      .win-lily {
+        font-size: 3rem;
+        animation: bloom 1.4s ease infinite;
+      }
+      @keyframes bloom {
+        0%,
+        100% {
+          transform: scale(1) rotate(0deg);
+        }
+        50% {
+          transform: scale(1.15) rotate(8deg);
+        }
+      }
+      .win-message {
+        margin: 1rem 0 1.6rem;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      @media (max-width: 480px) {
+        .top-bar h1 {
+          font-size: 1.4rem;
+        }
+        .card-panel {
+          padding: 1.4rem 1rem;
+        }
+        .board {
+          gap: 6px;
+        }
+        .tile-back {
+          font-size: 1.1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="petals" id="petals"></div>
+
+    <audio id="bg-music" loop preload="auto">
+      <source src="assets/music.mp3" type="audio/mpeg" />
+    </audio>
+
+    <header class="top-bar">
+      <h1>🧠 A Little Memory Game 🧠</h1>
+      <p class="subtitle">made just for you</p>
+    </header>
+
+    <!-- SETUP SCREEN -->
+    <section id="setup-screen" class="screen">
+      <div class="card-panel">
+        <h2>Ready to play?</h2>
+        <button id="start-btn" class="primary-btn">Start Playing</button>
+        <div class="sound-toggle">
+          <label>
+            <input type="checkbox" id="music-toggle" checked />
+            Play background music 🎵
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- GAME SCREEN -->
+    <section id="game-screen" class="screen hidden">
+      <div class="hud">
+        <div class="hud-item">💗 Moves: <span id="moves-count">0</span></div>
+        <div class="hud-item">⏱️ Time: <span id="timer">00:00</span></div>
+        <div class="hud-item">
+          💐 Pairs: <span id="pairs-count">0</span>/<span id="pairs-total"
+            >15</span
+          >
+        </div>
+        <button id="restart-btn" class="small-btn">↺ Restart</button>
+      </div>
+      <div id="board" class="board"></div>
+    </section>
+
+    <!-- WIN SCREEN -->
+    <section id="win-screen" class="screen hidden">
+      <div class="card-panel win-panel">
+        <div class="win-lily">💐</div>
+        <h2>You won!</h2>
+        <p id="win-message" class="win-message"></p>
+        <button id="play-again-btn" class="primary-btn">Play Again 💕</button>
+      </div>
+    </section>
+
+    <script>
+      /* ============================================================
+   CONFIG
+   ------------------------------------------------------------
+   Put your photos in:  assets/img1.png, assets/img2.png ... assets/img15.png
+   Put your music file at: assets/music.mp3
+   If a photo fails to load, that tile falls back to an emoji
+   automatically, so the game is playable right away.
+   ============================================================ */
+      const CONFIG = {
+        totalPairs: 15, // fixed: 15 pairs = 30 tiles, 5 columns x 6 rows
+        gridColumns: 5,
+
+        imageFolder: "assets/",
+        imagePrefix: "img",
+        imageExt: ".png",
+
+        musicFile: "assets/music.mp3",
+
+        fallbackEmoji: [
+          "💗",
+          "💕",
+          "💖",
+          "💘",
+          "🌷",
+          "🌸",
+          "🌹",
+          "🌺",
+          "🌻",
+          "💐",
+          "🌼",
+          "✨",
+          "🕊️",
+          "🌙",
+          "⭐",
+        ],
+
+        winMessages: [
+          "Every match brought us closer. 💕",
+          "Some things are always meant to find each other. 💗",
+          "Cleared the whole board, one pair at a time. 💐",
+          "You + me = a perfect pair. 💘",
+        ],
+      };
+
+      let state = {
+        tiles: [],
+        flipped: [],
+        matchedCount: 0,
+        moves: 0,
+        lockBoard: false,
+        timerInterval: null,
+        seconds: 0,
+        musicOn: true,
+      };
+
+      const el = {
+        setupScreen: document.getElementById("setup-screen"),
+        gameScreen: document.getElementById("game-screen"),
+        winScreen: document.getElementById("win-screen"),
+        startBtn: document.getElementById("start-btn"),
+        restartBtn: document.getElementById("restart-btn"),
+        playAgainBtn: document.getElementById("play-again-btn"),
+        board: document.getElementById("board"),
+        movesCount: document.getElementById("moves-count"),
+        timer: document.getElementById("timer"),
+        pairsCount: document.getElementById("pairs-count"),
+        winMessage: document.getElementById("win-message"),
+        musicToggle: document.getElementById("music-toggle"),
+        music: document.getElementById("bg-music"),
+        petals: document.getElementById("petals"),
+      };
+
+      function spawnPetals() {
+        const petalEmojis = ["🌸", "🌷", "💮", "🌺", "💗"];
+        for (let i = 0; i < 14; i++) {
+          const p = document.createElement("span");
+          p.className = "petal";
+          p.textContent =
+            petalEmojis[Math.floor(Math.random() * petalEmojis.length)];
+          p.style.left = Math.random() * 100 + "vw";
+          p.style.fontSize = 1 + Math.random() * 1.4 + "rem";
+          p.style.animationDuration = 8 + Math.random() * 10 + "s";
+          p.style.animationDelay = Math.random() * 10 + "s";
+          el.petals.appendChild(p);
+        }
+      }
+
+      function shuffle(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      function buildTiles() {
+        const keys = [];
+        for (let i = 1; i <= CONFIG.totalPairs; i++) {
+          keys.push({
+            id: "img" + i,
+            src: CONFIG.imageFolder + CONFIG.imagePrefix + i + CONFIG.imageExt,
+            fallback:
+              CONFIG.fallbackEmoji[(i - 1) % CONFIG.fallbackEmoji.length],
+          });
+        }
+        let tiles = [];
+        keys.forEach((k, i) => {
+          tiles.push({ uid: i + "a", ...k });
+          tiles.push({ uid: i + "b", ...k });
+        });
+        return shuffle(tiles);
+      }
+
+      function renderBoard() {
+        el.board.innerHTML = "";
+        el.board.style.gridTemplateColumns = `repeat(${CONFIG.gridColumns}, 1fr)`;
+
+        state.tiles.forEach((tile, index) => {
+          const tileEl = document.createElement("div");
+          tileEl.className = "tile";
+          tileEl.dataset.index = index;
+
+          tileEl.innerHTML = `
+      <div class="tile-inner">
+        <div class="tile-face tile-back">💗</div>
+        <div class="tile-face tile-front">
+          <img src="${tile.src}" alt=""
+               onerror="this.replaceWith(Object.assign(document.createElement('div'), {
+                 textContent: '${tile.fallback}',
+                 style: 'font-size:2.2rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%;'
+               }))">
+        </div>
+      </div>
+    `;
+
+          tileEl.addEventListener("click", () =>
+            handleTileClick(index, tileEl),
+          );
+          el.board.appendChild(tileEl);
+        });
+      }
+
+      function handleTileClick(index, tileEl) {
+        const tile = state.tiles[index];
+        if (state.lockBoard) return;
+        if (
+          tileEl.classList.contains("flipped") ||
+          tileEl.classList.contains("matched")
+        )
+          return;
+        if (state.flipped.length === 2) return;
+
+        tileEl.classList.add("flipped");
+        state.flipped.push({ index, tileEl, tile });
+
+        if (state.flipped.length === 2) {
+          state.moves++;
+          el.movesCount.textContent = state.moves;
+          checkMatch();
+        }
+      }
+
+      function checkMatch() {
+        const [first, second] = state.flipped;
+        state.lockBoard = true;
+        const isMatch = first.tile.id === second.tile.id;
+
+        if (isMatch) {
+          setTimeout(() => {
+            first.tileEl.classList.add("matched");
+            second.tileEl.classList.add("matched");
+            state.matchedCount++;
+            el.pairsCount.textContent = state.matchedCount;
+            state.flipped = [];
+            state.lockBoard = false;
+            if (state.matchedCount === CONFIG.totalPairs) onWin();
+          }, 400);
+        } else {
+          setTimeout(() => {
+            first.tileEl.classList.remove("flipped");
+            second.tileEl.classList.remove("flipped");
+            state.flipped = [];
+            state.lockBoard = false;
+          }, 900);
+        }
+      }
+
+      function startTimer() {
+        stopTimer();
+        state.seconds = 0;
+        el.timer.textContent = "00:00";
+        state.timerInterval = setInterval(() => {
+          state.seconds++;
+          const m = String(Math.floor(state.seconds / 60)).padStart(2, "0");
+          const s = String(state.seconds % 60).padStart(2, "0");
+          el.timer.textContent = `${m}:${s}`;
+        }, 1000);
+      }
+      function stopTimer() {
+        if (state.timerInterval) clearInterval(state.timerInterval);
+      }
+
+      function showScreen(name) {
+        el.setupScreen.classList.add("hidden");
+        el.gameScreen.classList.add("hidden");
+        el.winScreen.classList.add("hidden");
+        if (name === "setup") el.setupScreen.classList.remove("hidden");
+        if (name === "game") el.gameScreen.classList.remove("hidden");
+        if (name === "win") el.winScreen.classList.remove("hidden");
+      }
+
+      function startGame() {
+        state.tiles = buildTiles();
+        state.flipped = [];
+        state.matchedCount = 0;
+        state.moves = 0;
+        state.lockBoard = false;
+
+        el.movesCount.textContent = "0";
+        el.pairsCount.textContent = "0";
+
+        renderBoard();
+        showScreen("game");
+        startTimer();
+        playMusicIfEnabled();
+      }
+
+      function onWin() {
+        stopTimer();
+        const msg =
+          CONFIG.winMessages[
+            Math.floor(Math.random() * CONFIG.winMessages.length)
+          ];
+        el.winMessage.textContent = `${msg} (${state.moves} moves, ${el.timer.textContent})`;
+        showScreen("win");
+      }
+
+      function playMusicIfEnabled() {
+        if (state.musicOn) {
+          el.music.volume = 0.5;
+          el.music.play().catch(() => {});
+        }
+      }
+      function toggleMusic(on) {
+        state.musicOn = on;
+        if (on) playMusicIfEnabled();
+        else el.music.pause();
+      }
+
+      el.startBtn.addEventListener("click", () => {
+        state.musicOn = el.musicToggle.checked;
+        startGame();
+      });
+      el.restartBtn.addEventListener("click", () => {
+        stopTimer();
+        startGame();
+      });
+      el.playAgainBtn.addEventListener("click", () => {
+        showScreen("setup");
+      });
+      el.musicToggle.addEventListener("change", (e) =>
+        toggleMusic(e.target.checked),
+      );
+
+      spawnPetals();
+      showScreen("setup");
+    </script>
+  </body>
+</html>
