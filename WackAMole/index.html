@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Whack-a-Naina</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --blush: #ffd9e8;
+        --pink: #ff7fb0;
+        --rose: #e0407a;
+        --deep: #b81d5b;
+        --cream: #fff6f0;
+        --lavender: #d9c2f0;
+        --gold: #f6c667;
+        --ink: #5a2340;
+      }
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: "Quicksand", sans-serif;
+        background: linear-gradient(
+          160deg,
+          var(--blush),
+          var(--cream) 55%,
+          var(--lavender)
+        );
+        color: var(--ink);
+        overflow-x: hidden;
+        touch-action: manipulation;
+      }
+      h1,
+      h2,
+      .display {
+        font-family: "Fredoka", sans-serif;
+      }
+
+      /* floating hearts/petals background */
+      #floaties {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .floaty {
+        position: absolute;
+        bottom: -40px;
+        font-size: 22px;
+        opacity: 0.55;
+        animation: rise linear forwards;
+      }
+      @keyframes rise {
+        to {
+          transform: translateY(-110vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      .wrap {
+        position: relative;
+        z-index: 1;
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 18px 14px 60px;
+        min-height: 100vh;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 10px;
+      }
+      header h1 {
+        font-size: clamp(26px, 7vw, 36px);
+        margin: 6px 0 2px;
+        color: var(--deep);
+        text-shadow:
+          1px 1px 0 #fff,
+          0 3px 8px rgba(224, 64, 122, 0.25);
+        letter-spacing: 0.5px;
+      }
+      header p.sub {
+        margin: 0;
+        font-weight: 600;
+        color: var(--rose);
+        font-size: 14px;
+      }
+
+      .stats {
+        display: flex;
+        justify-content: space-between;
+        gap: 8px;
+        margin: 16px 0;
+      }
+      .stat {
+        flex: 1;
+        background: #fff;
+        border: 2px solid var(--pink);
+        border-radius: 16px;
+        padding: 8px 6px;
+        text-align: center;
+        box-shadow: 0 4px 0 rgba(224, 64, 122, 0.15);
+      }
+      .stat .label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--rose);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .stat .value {
+        font-family: "Fredoka", sans-serif;
+        font-size: 22px;
+        color: var(--deep);
+      }
+
+      #startBtn,
+      #restartBtn {
+        display: block;
+        margin: 14px auto;
+        padding: 12px 28px;
+        background: linear-gradient(135deg, var(--pink), var(--rose));
+        border: none;
+        border-radius: 999px;
+        color: #fff;
+        font-family: "Fredoka", sans-serif;
+        font-size: 17px;
+        font-weight: 600;
+        box-shadow: 0 5px 0 var(--deep);
+        cursor: pointer;
+        transition: transform 0.08s;
+      }
+      #startBtn:active,
+      #restartBtn:active {
+        transform: translateY(3px);
+        box-shadow: 0 2px 0 var(--deep);
+      }
+
+      .board {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-top: 10px;
+      }
+
+      /* outer hole: stays overflow-visible so the petal + heart/anger bursts
+         can pop out above/around the circle without being clipped */
+      .hole {
+        position: relative;
+        aspect-ratio: 1/1;
+        overflow: visible;
+      }
+      /* petals ringing each hole */
+      .hole::before {
+        content: "🌸";
+        position: absolute;
+        font-size: 20px;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2;
+      }
+      .hole::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 3px dashed rgba(255, 255, 255, 0.35);
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      /* inner hole: this is what actually clips the mole. Because it (not
+         the outer .hole) has overflow:hidden, a mole sliding down to
+         bottom:-100% is masked by its own hole rather than poking out
+         below the board on the last row */
+      .holeInner {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        overflow: hidden;
+        background: radial-gradient(
+          circle at 50% 40%,
+          #6b3350 0%,
+          #3d1a2c 60%,
+          #2a1120 100%
+        );
+        box-shadow:
+          inset 0 8px 18px rgba(0, 0, 0, 0.55),
+          0 6px 0 rgba(224, 64, 122, 0.2);
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+      }
+
+      .mole {
+        position: absolute;
+        bottom: -100%;
+        left: 50%;
+        transform: translate(-50%, 0);
+        width: 78%;
+        height: 78%;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid var(--gold);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        transition: bottom 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
+        cursor: pointer;
+      }
+      .mole img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .mole.up {
+        bottom: 10%;
+      }
+      .mole.hit {
+        animation: squish 0.25s ease;
+      }
+      @keyframes squish {
+        0% {
+          transform: translate(-50%, 0) scale(1);
+        }
+        40% {
+          transform: translate(-50%, 0) scale(1.15, 0.8);
+        }
+        100% {
+          transform: translate(-50%, 0) scale(0.4);
+          opacity: 0;
+        }
+      }
+
+      .heartburst {
+        position: absolute;
+        pointer-events: none;
+        font-size: 20px;
+        z-index: 5;
+        animation: burst 0.6s ease forwards;
+      }
+      @keyframes burst {
+        0% {
+          transform: translateY(0) scale(0.6);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-60px) scale(1.3);
+          opacity: 0;
+        }
+      }
+
+      /* angry burst shown on a miss */
+      .angryburst {
+        position: absolute;
+        pointer-events: none;
+        font-size: 22px;
+        z-index: 5;
+        animation: angryPop 0.55s ease forwards;
+      }
+      @keyframes angryPop {
+        0% {
+          transform: translateY(0) scale(0.5) rotate(-10deg);
+          opacity: 1;
+        }
+        50% {
+          transform: translateY(-25px) scale(1.25) rotate(8deg);
+        }
+        100% {
+          transform: translateY(-55px) scale(1) rotate(-6deg);
+          opacity: 0;
+        }
+      }
+
+      .overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(90, 35, 64, 0.55);
+        backdrop-filter: blur(2px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 30;
+      }
+      .overlay .card {
+        background: #fff;
+        border-radius: 22px;
+        padding: 26px 22px;
+        text-align: center;
+        max-width: 320px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        border: 3px solid var(--pink);
+      }
+      .overlay h2 {
+        color: var(--rose);
+        margin-top: 0;
+      }
+      .hidden {
+        display: none !important;
+      }
+
+      footer.note {
+        text-align: center;
+        font-size: 11px;
+        color: var(--rose);
+        opacity: 0.75;
+        margin-top: 22px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="floaties"></div>
+
+    <div class="wrap">
+      <header>
+        <h1>🌸 Whack-a-Naina 🌸</h1>
+        <p class="sub">hit Naina before she hides!</p>
+      </header>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="label">Score</div>
+          <div class="value" id="scoreVal">0</div>
+        </div>
+        <div class="stat">
+          <div class="label">Lives</div>
+          <div class="value" id="livesVal">5</div>
+        </div>
+        <div class="stat">
+          <div class="label">Time</div>
+          <div class="value" id="timeVal">45</div>
+        </div>
+      </div>
+
+      <button id="startBtn">Start Game 💖</button>
+
+      <div class="board" id="board"></div>
+    </div>
+
+    <div class="overlay hidden" id="endOverlay">
+      <div class="card">
+        <h2>Time's up! 💌</h2>
+        <p>Final score: <strong id="finalScore">0</strong></p>
+        <button id="restartBtn">Play Again</button>
+      </div>
+    </div>
+
+    <audio id="sound1" src="sound1.mp3" preload="auto"></audio>
+    <audio id="sound2" src="sound2.mp3" preload="auto"></audio>
+    <audio id="sound3" src="sound3.mp3" preload="auto"></audio>
+    <audio id="musicTrack" src="music.mp3" preload="auto" loop></audio>
+
+    <script>
+      /* ================= EDITABLE SETTINGS ================= */
+
+      // the three head photos, in order (files must sit next to this html file)
+      const HEAD_IMAGES = [
+        "img1.png",
+        "img2.png",
+        "img3.png",
+        "img4.png",
+        "img5.png",
+      ];
+
+      // matching sound effect ids (sound1 plays when img1 is hit, etc.)
+      const HIT_SOUND_IDS = ["sound1", "sound2", "sound3"];
+
+      // symbols shown when a head escapes / you tap empty ground
+      const angrySymbols = ["❗️", "💢", "😤", "‼️"];
+
+      const GAME_SECONDS = 45;
+      const STARTING_LIVES = 5;
+      const MOLE_UP_MIN_MS = 750; // fastest a head disappears
+      const MOLE_UP_MAX_MS = 1300; // slowest a head disappears
+      const SPAWN_INTERVAL_MS = 650;
+      const MUSIC_VOLUME = 0.4;
+
+      // how long (ms) a hole stays "off limits" for re-spawning right after
+      // it's hit, so a new head can't pop in while the squish animation
+      // (260ms) is still playing in the same hole
+      const HOLE_COOLDOWN_MS = 320;
+
+      /* ================= GAME CODE (no need to edit below) ================= */
+
+      const board = document.getElementById("board");
+      const scoreVal = document.getElementById("scoreVal");
+      const livesVal = document.getElementById("livesVal");
+      const timeVal = document.getElementById("timeVal");
+      const startBtn = document.getElementById("startBtn");
+      const restartBtn = document.getElementById("restartBtn");
+      const endOverlay = document.getElementById("endOverlay");
+      const finalScoreEl = document.getElementById("finalScore");
+      const musicTrack = document.getElementById("musicTrack");
+      musicTrack.volume = MUSIC_VOLUME;
+
+      const HOLE_COUNT = 9; // 3x3 board
+      let holes = [];
+      let score = 0,
+        lives = STARTING_LIVES,
+        timeLeft = GAME_SECONDS;
+      let spawnTimer = null,
+        countdownTimer = null,
+        running = false;
+
+      // build holes + moles
+      for (let i = 0; i < HOLE_COUNT; i++) {
+        const hole = document.createElement("div");
+        hole.className = "hole";
+
+        const holeInner = document.createElement("div");
+        holeInner.className = "holeInner";
+
+        const mole = document.createElement("div");
+        mole.className = "mole";
+        const img = document.createElement("img");
+        img.alt = "head";
+        img.onerror = () => {
+          img.replaceWith(document.createTextNode("🙂"));
+        };
+        mole.appendChild(img);
+        holeInner.appendChild(mole);
+        hole.appendChild(holeInner);
+        board.appendChild(hole);
+        holes.push({
+          el: hole,
+          mole,
+          img,
+          up: false,
+          hideTimeout: null,
+          headIndex: -1,
+          cooldownUntil: 0,
+        });
+
+        hole.addEventListener("pointerdown", () => {
+          if (!running) return;
+          const h = holes[i];
+          if (h.up) {
+            hit(h);
+          } else {
+            miss(h.el); // tapped empty hole
+          }
+        });
+      }
+
+      function randInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+      }
+
+      function spawnMole() {
+        if (!running) return;
+        const now = Date.now();
+        const free = holes.filter((h) => !h.up && h.cooldownUntil <= now);
+        if (free.length === 0) return;
+        const h = free[randInt(0, free.length - 1)];
+        const headIndex = randInt(0, HEAD_IMAGES.length - 1);
+        h.headIndex = headIndex;
+        h.img.src = HEAD_IMAGES[headIndex];
+        h.up = true;
+        h.mole.classList.remove("hit");
+        h.mole.classList.add("up");
+
+        const upTime = randInt(MOLE_UP_MIN_MS, MOLE_UP_MAX_MS);
+        h.hideTimeout = setTimeout(() => {
+          if (h.up) {
+            h.up = false;
+            h.mole.classList.remove("up");
+            miss(h.el);
+          }
+        }, upTime);
+      }
+
+      function hit(h) {
+        clearTimeout(h.hideTimeout);
+        h.up = false;
+        h.cooldownUntil = Date.now() + HOLE_COOLDOWN_MS;
+        h.mole.classList.add("hit");
+        setTimeout(() => h.mole.classList.remove("up", "hit"), 260);
+
+        playSound(h.headIndex);
+        spawnHeartBurst(h.el);
+
+        score += 10;
+        scoreVal.textContent = score;
+      }
+
+      function miss(holeEl) {
+        lives = Math.max(0, lives - 1);
+        livesVal.textContent = lives;
+        if (holeEl) spawnAngryBurst(holeEl);
+        if (lives <= 0) endGame();
+      }
+
+      function playSound(headIndex) {
+        // headIndex can exceed HIT_SOUND_IDS.length (5 heads, 3 sounds) -
+        // wrap around so every head always triggers a sound instead of
+        // silently finding nothing
+        const id = HIT_SOUND_IDS[headIndex % HIT_SOUND_IDS.length];
+        const audio = document.getElementById(id);
+        if (audio) {
+          audio.currentTime = 0;
+          audio.play().catch(() => {});
+        }
+      }
+
+      function spawnHeartBurst(holeEl) {
+        const burst = document.createElement("div");
+        burst.className = "heartburst";
+        burst.textContent = "💗";
+        burst.style.left = 40 + randInt(-10, 10) + "%";
+        burst.style.top = "10%";
+        holeEl.appendChild(burst);
+        setTimeout(() => burst.remove(), 650);
+      }
+
+      function spawnAngryBurst(holeEl) {
+        const burst = document.createElement("div");
+        burst.className = "angryburst";
+        burst.textContent =
+          angrySymbols[randInt(0, angrySymbols.length - 1)];
+        burst.style.left = 40 + randInt(-10, 10) + "%";
+        burst.style.top = "0%";
+        holeEl.appendChild(burst);
+        setTimeout(() => burst.remove(), 600);
+      }
+
+      function startGame() {
+        score = 0;
+        lives = STARTING_LIVES;
+        timeLeft = GAME_SECONDS;
+        scoreVal.textContent = score;
+        livesVal.textContent = lives;
+        timeVal.textContent = timeLeft;
+        endOverlay.classList.add("hidden");
+        running = true;
+        startBtn.classList.add("hidden");
+        holes.forEach((h) => (h.cooldownUntil = 0));
+
+        musicTrack.currentTime = 0;
+        musicTrack.play().catch(() => {});
+
+        spawnTimer = setInterval(spawnMole, SPAWN_INTERVAL_MS);
+        countdownTimer = setInterval(() => {
+          timeLeft -= 1;
+          timeVal.textContent = timeLeft;
+          if (timeLeft <= 0) endGame();
+        }, 1000);
+      }
+
+      function endGame() {
+        running = false;
+        clearInterval(spawnTimer);
+        clearInterval(countdownTimer);
+        musicTrack.pause();
+        holes.forEach((h) => {
+          clearTimeout(h.hideTimeout);
+          h.up = false;
+          h.mole.classList.remove("up");
+        });
+        finalScoreEl.textContent = score;
+        endOverlay.classList.remove("hidden");
+      }
+
+      startBtn.addEventListener("click", startGame);
+      restartBtn.addEventListener("click", startGame);
+
+      // floating hearts/petals background
+      const floatiesEl = document.getElementById("floaties");
+      const floatSymbols = ["💗", "🌸", "💕", "🌷", "✨"];
+      setInterval(() => {
+        const f = document.createElement("div");
+        f.className = "floaty";
+        f.textContent = floatSymbols[randInt(0, floatSymbols.length - 1)];
+        f.style.left = randInt(0, 100) + "vw";
+        f.style.animationDuration = randInt(7, 13) + "s";
+        f.style.fontSize = randInt(16, 28) + "px";
+        floatiesEl.appendChild(f);
+        setTimeout(() => f.remove(), 14000);
+      }, 900);
+    </script>
+  </body>
+</html>
