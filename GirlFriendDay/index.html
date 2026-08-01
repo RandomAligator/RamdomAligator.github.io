@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>For Naina 🦋</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Pacifico&family=Limelight&family=Just+Another+Hand&family=Quicksand:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Ambient layers -->
+    <canvas id="petal-canvas"></canvas>
+    <div id="sparkle-layer"></div>
+
+    <!-- Fixed controls -->
+    <div class="controls">
+      <button id="modeToggle" class="ctrl-btn" aria-label="Toggle day/night">
+        ☀️
+      </button>
+      <button id="musicToggle" class="ctrl-btn" aria-label="Toggle music">
+        🎵
+      </button>
+    </div>
+    <audio id="bgMusic" src="assets/background.mp3" loop preload="none"></audio>
+
+    <!-- ============ 1. LANDING ============ -->
+    <section id="landing" class="section landing">
+      <div class="floaters">
+        <span class="floater">🦋</span><span class="floater">💙</span
+        ><span class="floater">🌸</span> <span class="floater">🦚</span
+        ><span class="floater">🌹</span><span class="floater">🦋</span>
+      </div>
+      <p class="eyebrow">a little corner of the internet, just for</p>
+      <h1 class="hero-name" id="heroName">Naina</h1>
+      <p class="hero-sub">— my babe, my favourite person,my darling —</p>
+      <button id="startBtn" class="btn-primary">Start the Journey 💌</button>
+      <div class="scroll-hint">scroll gently ↓</div>
+    </section>
+
+    <!-- ============ 2. NOTE FROM ME ============ -->
+    <section class="section note-section">
+      <div class="feather-divider">🪶</div>
+      <h2 class="script-title">Hi Babe.</h2>
+      <p class="typewriter-block" id="introType"></p>
+    </section>
+
+    <!-- ============ 3. GALLERY ============ -->
+    <section class="section gallery-section">
+      <h2 class="script-title">Little Moments</h2>
+      <p class="section-sub">
+        every picture, a video call, a laugh, a "look at this"
+      </p>
+      <div class="gallery-grid" id="galleryGrid"></div>
+    </section>
+
+    <!-- ============ 4. REASONS ============ -->
+    <section class="section reasons-section">
+      <h2 class="script-title">Reasons I Love You</h2>
+      <p class="section-sub">
+        tap a card, babe. there's more where that came from
+      </p>
+      <div class="reasons-grid" id="reasonsGrid"></div>
+    </section>
+
+    <!-- ============ 5. MUSIC ============ -->
+    <section class="section music-section">
+      <h2 class="script-title">Music</h2>
+      <p class="section-sub">
+        press play, found a song that describes my feeling for you !
+      </p>
+      <div class="record-wrap">
+        <div class="record" id="record">
+          <div class="record-hole"></div>
+        </div>
+      </div>
+      <button id="playSong" class="btn-secondary">▶ Play our song</button>
+    </section>
+
+    <!-- ============ 6. LOVE LETTER ============ -->
+    <section class="section letter-section">
+      <h2 class="script-title">A Letter For You</h2>
+      <div class="envelope" id="envelope">
+        <div class="envelope-flap"></div>
+        <div class="envelope-body">💌</div>
+      </div>
+      <div class="letter-paper" id="letterPaper">
+        <p id="letterType"></p>
+      </div>
+    </section>
+
+    <!-- ============ 7. MEMORY GAME ============ -->
+    <section class="section game-section">
+      <h2 class="script-title">A Tiny Game</h2>
+      <p class="section-sub">
+        match the pairs, babe — you're better at this than you think
+      </p>
+      <div class="memory-grid" id="memoryGrid"></div>
+      <p class="game-status" id="gameStatus"></p>
+    </section>
+
+    <!-- ============ 8. TWO CITIES ============ -->
+    <section class="section map-section">
+      <h2 class="script-title">Two Cities, One Heart</h2>
+      <div class="map-wrap">
+        <div class="city-card">
+          <div class="city-pin">📍</div>
+          <p class="city-name">Vellore</p>
+          <p class="city-tag">where I am</p>
+        </div>
+        <div class="heart-line">
+          <span class="beating-heart">💙</span>
+        </div>
+        <div class="city-card">
+          <div class="city-pin">📍</div>
+          <p class="city-name">Navi Mumbai</p>
+          <p class="city-tag">where you are</p>
+        </div>
+      </div>
+      <p class="section-sub">
+        a few hundred kilometres, a hundred video calls, one heart
+      </p>
+    </section>
+
+    <!-- ============ 9. FUTURE DREAMS ============ -->
+    <section class="section dreams-section">
+      <h2 class="script-title">Someday, Us</h2>
+      <div class="dream-cards">
+        <div class="dream-card">
+          <div class="dream-icon">⛰️</div>
+          <h3>All of Nepal</h3>
+          <p>
+            every mountain, every quiet town, both of us with a camera and
+            nowhere to be.
+          </p>
+        </div>
+        <div class="dream-card">
+          <div class="dream-icon">🌹</div>
+          <h3>Every Kind of Date</h3>
+          <p>
+            the cheesy ones, the quiet ones, the ones we make up on the spot.
+            all of it, with you.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 10. JUST US ============ -->
+    <section class="section justus-section">
+      <h2 class="script-title">Just Us</h2>
+      <div class="justus-grid">
+        <div class="justus-card">
+          <p>the nickname</p>
+          <h3>Kiya</h3>
+        </div>
+        <div class="justus-card">
+          <p>the joke only we get</p>
+          <h3>"I owe that cow a favour"</h3>
+        </div>
+        <div class="justus-card">
+          <p>the habit</p>
+          <h3>your ridiculous fish face 🐟</h3>
+        </div>
+        <div class="justus-card">
+          <p>the thing no words can explain</p>
+          <h3>we just stare at each other</h3>
+        </div>
+      </div>
+      <p class="section-sub">
+        and my favourite thing about you? your smile, and your eyes. every time.
+      </p>
+    </section>
+
+    <!-- ============ 11. SURPRISE ============ -->
+    <section class="section surprise-section">
+      <h2 class="script-title">One Last Thing</h2>
+      <p class="section-sub">go on, tap it</p>
+      <button id="surpriseBtn" class="btn-primary surprise-btn">
+        🎁 Tap Me
+      </button>
+    </section>
+
+    <div id="surpriseOverlay" class="surprise-overlay">
+      <div class="surprise-message">
+        <p>Happy Girlfriend's Day, my Babe.</p>
+        <p class="small">
+          22.07.2026 and every day after — I'm so lucky it's you.
+        </p>
+        <button id="closeSurprise" class="btn-secondary">close, softly</button>
+      </div>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <footer class="footer">
+      <p class="script-title small-script">Happy Girlfriend's Day, babe.</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
